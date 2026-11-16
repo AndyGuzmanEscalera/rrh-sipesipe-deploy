@@ -5,6 +5,15 @@ Deploy exclusivo de la API RRHH independiente. GitHub:
 Ruta de preparación local: `C:\dev\rrhh_sipe_sipe_api_deploy`.
 No incluye Flutter ni maestros de Correspondencia.
 
+QA server-to-server: api/worker conservan edge/data y se conectan también a la
+red externa existente `correspondencia-deploy_edge`. PostgreSQL permanece solo
+en data. No crear/adoptar esa red ni modificar los contenedores de Correspondencia.
+`APP_ENV=qa` + `ALLOW_PRIVATE_HTTP_CORRESPONDENCIA=true` permite únicamente
+`http://backend:8000` (o la misma URL con barra final). El flag es false por defecto.
+En producción HTTP se rechaza incluso con el flag; usar
+`https://api-correspondencia.sipesipe.gob.bo` y flag=false. Biometric API siempre HTTPS.
+Ver [comandos QA](docs/QA_CORRESPONDENCIA_INTERNA.md).
+
 ```text
 rrhh-sipe-sipe-api / develop
   → scripts/prepare_deploy.py (SHA esperado y SOURCE limpio)
@@ -34,6 +43,11 @@ python scripts/prepare_deploy.py --source C:\dev\rrhh_sipe_sipe_api --expected-s
 Exige rama develop, árbol completo limpio y SHA exacto. Exporta blobs Git confirmados:
 app/, alembic/, alembic.ini, requirements.txt, Dockerfile y .dockerignore a backend/.
 No incluye .env, claves, caches, DB, tests backend ni documentación de desarrollo.
+La excepción QA es un overlay explícito de DEPLOY en
+`patches/qa-correspondencia-http.patch`, sin modificar SOURCE. El preparador prueba
+y reaplica ese patch en staging temporal antes de reemplazar runtime; si una
+versión futura de SOURCE es incompatible, la promoción se detiene. source_sha
+identifica el runtime base; el commit DEPLOY y el patch identifican la diferencia QA.
 Regenera manifest con status=prepared; después de validar runtime se cambia a
 validated y se registra evidencia en OPERACION.md antes de commit/push DEPLOY.
 Los tests/ de este repo prueban solo promoción y herramientas operativas.

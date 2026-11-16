@@ -28,6 +28,16 @@ BIOMETRIC_API_URL=https://biometric.sipesipe.gob.bo, TOKEN vacío en plantilla,
 TIMEOUT=60, DEVICE_ID=alcaldia-central. No hay pyzk ni conexión directa al reloj.
 Tokens privados solo se cargan en el entorno autorizado, nunca se copian del PC.
 
+Excepción QA actual: `APP_ENV=qa`, `ALLOW_PRIVATE_HTTP_CORRESPONDENCIA=true` y
+`CORRESPONDENCIA_API_URL=http://backend:8000`. No se usan IPs Docker ni HTTPS público
+para esa comunicación interna QA. Pydantic y preflight admiten exactamente ese
+destino, sin credenciales/query/fragmento/path extra; no se admite HTTP público ni
+HTTP en producción. El flag apagado es el default. API/worker se conectan a la red
+externa existente correspondencia-deploy_edge además de sus redes RRHH; PostgreSQL
+no se conecta allí. Preflight verifica que la red exista, sin crearla/modificarla.
+En producción restaurar HTTPS estable y flag=false. El resto de CORS/cookies y
+la URL biométrica permanecen sin cambios. Comandos: QA_CORRESPONDENCIA_INTERNA.md.
+
 LOCAL_TIMEZONE=America/La_Paz; CORS_ALLOW_ORIGINS vacío para mismo origen, o lista
 exacta de HTTPS autorizados. SESSION_COOKIE_SECURE=true, SameSite=lax, nombre
 rrhh_refresh_token, ruta /auth cuando API se publica en raíz del dominio.

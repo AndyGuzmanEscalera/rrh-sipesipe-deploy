@@ -3,3 +3,5 @@
 *.py text eol=lf
 *.yml text eol=lf
 *.json text eol=lf
+# Unified diffs use a single space to mark empty context lines.
+*.patch text eol=lf whitespace=-blank-at-eol

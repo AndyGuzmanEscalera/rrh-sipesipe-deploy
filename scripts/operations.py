@@ -65,7 +65,12 @@ def validate_env(v):
         require(re.fullmatch('[a-z][a-z0-9_]{0,62}',v[key]),'Invalid '+key)
     for key in ('CORRESPONDENCIA_API_URL','BIOMETRIC_API_URL'):
         u=urlsplit(v[key])
-        require(u.scheme=='https' and u.hostname and not u.username and not u.password and not u.query and not u.fragment,'Credential-free HTTPS required: '+key)
+        qa_private=(key=='CORRESPONDENCIA_API_URL' and v['APP_ENV']=='qa'
+            and v.get('ALLOW_PRIVATE_HTTP_CORRESPONDENCIA','false')=='true'
+            and v[key] in {'http://backend:8000','http://backend:8000/'})
+        require(qa_private or (u.scheme=='https' and u.hostname and not u.username and not u.password
+            and not u.query and not u.fragment),'HTTPS required except explicit QA backend:8000: '+key)
+    require(v.get('ALLOW_PRIVATE_HTTP_CORRESPONDENCIA','false') in {'true','false'},'Invalid private HTTP flag')
     require(len(v['BIOMETRIC_API_TOKEN'])>=32,'Biometric token too short')
     for key in ('CORRESPONDENCIA_API_TIMEOUT','BIOMETRIC_API_TIMEOUT'):
         require(re.fullmatch(r'\d+(\.\d+)?',v.get(key,'')) and 0<float(v[key])<=600,'Invalid '+key)
@@ -115,6 +120,7 @@ def preflight(c):
     require(c.run(['docker','info','--format','{{.OSType}}']).strip()=='linux','Docker Linux required')
     c.run(['docker','compose','version'])
     c.dc('config','--quiet',label='Compose config (requires Compose >=2.30)')
+    c.run(['docker','network','inspect','correspondencia-deploy_edge'],label='Existing Correspondencia edge network')
     for name in ['backend/Dockerfile','backend/.dockerignore','backend/requirements.txt','backend/app/main.py',
         'backend/alembic.ini','backend/alembic/versions/0001_rrhh_initial_rrhh_owned_tables.py']:
         path=c.root/name

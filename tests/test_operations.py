@@ -78,6 +78,7 @@ class PromotionTests(unittest.TestCase):
         self.git('config','user.name','Fixture');self.git('config','user.email','fixture@example.invalid')
         for n in range(40):
             path=self.source/'app'/('fixture'+str(n)+'.py');path.parent.mkdir(exist_ok=True);path.write_text('value=1\n')
+        config=self.source/'app/core/config.py';config.parent.mkdir();config.write_text('value=1\n')
         path=self.source/'alembic/versions/0001_rrhh_initial_rrhh_owned_tables.py'
         path.parent.mkdir(parents=True);path.write_text('revision="0001_rrhh"\n')
         for name in ['requirements.txt','alembic.ini','Dockerfile','.dockerignore']:
@@ -110,6 +111,16 @@ class PromotionTests(unittest.TestCase):
     def test_validation_only_does_not_mutate_target(self):
         promote.prepare(self.source,self.sha,True)
         self.assertFalse((self.target/'backend').exists())
+
+    def test_explicit_deploy_overlay_survives_promotion(self):
+        directory=self.target/'patches';directory.mkdir()
+        (directory/'qa-correspondencia-http.patch').write_text(
+            'diff --git a/backend/app/core/config.py b/backend/app/core/config.py\n'
+            '--- a/backend/app/core/config.py\n+++ b/backend/app/core/config.py\n'
+            '@@ -1 +1 @@\n-value=1\n+value=2\n')
+        promote.prepare(self.source,self.sha)
+        self.assertEqual((self.target/'backend/app/core/config.py').read_text(),'value=2\n')
+        self.assertEqual(self.git('show','HEAD:app/core/config.py'),'value=1\n')
 
 
 if __name__=='__main__': unittest.main()

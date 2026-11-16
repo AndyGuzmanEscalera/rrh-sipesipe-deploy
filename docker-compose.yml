@@ -24,7 +24,7 @@ x-runtime: &runtime
   cap_drop: [ALL]
   security_opt: ['no-new-privileges:true']
   stop_grace_period: 90s
-  networks: [edge, data]
+  networks: [edge, data, correspondencia_edge]
 services:
   postgres:
     image: postgres:16-alpine
@@ -65,5 +65,8 @@ networks:
     driver: bridge
   data:
     internal: true
+  correspondencia_edge:
+    external: true
+    name: correspondencia-deploy_edge
 volumes:
   rrhh_postgres_data:

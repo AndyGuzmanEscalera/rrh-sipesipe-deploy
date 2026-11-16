@@ -4,5 +4,5 @@
   "source_branch": "develop",
   "build_date": "2026-11-16T19:21:14.275978+00:00",
   "status": "validated",
-  "notes": "Runtime from https://github.com/AndyGuzmanEscalera/rrhh-sipe-sipe-api develop; local Compose build, fresh Alembic 0001_rrhh/check, API200/protected401, worker, restart and volume persistence validated. No server deployment or tunnel."
+  "notes": "Base runtime from https://github.com/AndyGuzmanEscalera/rrhh-sipe-sipe-api develop. Deploy-only QA overlay patches/qa-correspondencia-http.patch allows opt-in http://backend:8000 only in qa; production HTTPS required. Local isolated startup/DNS/health/delegated auth validated; no server deployment or tunnel changes."
 }

@@ -1,0 +1,69 @@
+name: rrhh-api-deploy
+x-runtime: &runtime
+  build:
+    context: ./backend
+  image: rrhh-sipe-sipe-api:${RELEASE_VERSION:-local}
+  restart: unless-stopped
+  init: true
+  user: rrhh
+  working_dir: /app
+  env_file:
+    - path: ${RUNTIME_ENV_FILE:-.env}
+      format: raw
+  environment:
+    DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:?Define POSTGRES_USER}:${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:?Define POSTGRES_DB}
+    PYTHONDONTWRITEBYTECODE: '1'
+  labels:
+    org.opencontainers.image.source: https://github.com/AndyGuzmanEscalera/rrhh-sipe-sipe-api
+    org.opencontainers.image.revision: ${SOURCE_SHA:-unprepared}
+  depends_on:
+    postgres:
+      condition: service_healthy
+  read_only: true
+  tmpfs: ['/tmp:rw,nosuid,nodev,size=128m']
+  cap_drop: [ALL]
+  security_opt: ['no-new-privileges:true']
+  stop_grace_period: 90s
+  networks: [edge, data]
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Define POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?Define POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD}
+    volumes: [rrhh_postgres_data:/var/lib/postgresql/data]
+    networks: [data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    stop_grace_period: 60s
+  api:
+    <<: *runtime
+    command: [uvicorn, app.main:app, --host, 0.0.0.0, --port, '8000', --no-proxy-headers, --no-access-log]
+    ports: ['127.0.0.1:${RRHH_API_PORT:-8300}:8000']
+    healthcheck:
+      test: [CMD, python, -B, -c, 'import json,urllib.request; d=json.load(urllib.request.urlopen("http://127.0.0.1:8000/health",timeout=4)); assert d.get("status")=="ok"']
+      interval: 5s
+      timeout: 5s
+      start_period: 10s
+      retries: 15
+  worker:
+    <<: *runtime
+    command: [python, -B, -m, app.biometric.worker]
+    healthcheck:
+      test: [CMD, python, -B, -c, 'from app.db.session import get_engine; from sqlalchemy import text; c=get_engine().connect(); assert c.execute(text("select version_num from alembic_version")).scalar()=="0001_rrhh"; c.close()']
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 10
+networks:
+  edge:
+    driver: bridge
+  data:
+    internal: true
+volumes:
+  rrhh_postgres_data:

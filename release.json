@@ -1,0 +1,8 @@
+{
+  "release": "qa-f5affb69a177",
+  "source_sha": "f5affb69a1777289ab6f4fd8d27ae259b41895d1",
+  "source_branch": "develop",
+  "build_date": "2026-11-16T19:21:14.275978+00:00",
+  "status": "validated",
+  "notes": "Runtime from https://github.com/AndyGuzmanEscalera/rrhh-sipe-sipe-api develop; local Compose build, fresh Alembic 0001_rrhh/check, API200/protected401, worker, restart and volume persistence validated. No server deployment or tunnel."
+}

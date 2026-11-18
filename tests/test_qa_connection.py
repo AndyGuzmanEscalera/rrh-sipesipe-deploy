@@ -1,7 +1,9 @@
 """QA exception is identical at preflight and runtime; never a general HTTP bypass."""
+import importlib.util
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -12,7 +14,7 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'scripts'))
 sys.path.insert(0,str(ROOT/'backend'))
 from operations import Context,Refusal,validate_env
-from app.core.config import Settings
+from prepare_deploy import apply_deploy_overlays
 from pydantic import ValidationError
 
 CASES=[
@@ -36,6 +38,23 @@ CASES=[
 
 
 class QaConnectionTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        directory = tempfile.TemporaryDirectory()
+        cls.addClassCleanup(directory.cleanup)
+        cls.qa_runtime = Path(directory.name) / 'backend'
+        shutil.copytree(ROOT / 'backend' / 'app', cls.qa_runtime / 'app',
+                        ignore=shutil.ignore_patterns('__pycache__'))
+        target = cls.qa_runtime / 'app/core/config.py'
+        current = target.read_bytes()
+        # A promoted QA checkout may already include the overlay.
+        if b'allow_private_http_correspondencia' not in current:
+            target.write_bytes(apply_deploy_overlays({'app/core/config.py': current})['app/core/config.py'])
+        spec = importlib.util.spec_from_file_location('qa_fixture_config', target)
+        config = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(config)
+        cls.Settings = config.Settings
+
     def env(self,app_env='qa',allow=True,url='http://backend:8000'):
         values={}
         for line in (ROOT/'.env.example').read_text().splitlines():
@@ -58,15 +77,15 @@ class QaConnectionTests(unittest.TestCase):
             with self.subTest(env=app_env,allow=allow,url=url):
                 values=dict(_env_file=None,app_env=app_env,allow_private_http_correspondencia=allow,
                     correspondencia_api_url=url,biometric_api_url='https://biometric.invalid.test')
-                if valid: self.assertEqual(Settings(**values).correspondencia_api_url,url.rstrip('/'))
+                if valid: self.assertEqual(self.Settings(**values).correspondencia_api_url,url.rstrip('/'))
                 else:
-                    with self.assertRaises(ValidationError): Settings(**values)
+                    with self.assertRaises(ValidationError): self.Settings(**values)
 
     def test_private_http_is_disabled_by_default(self):
         with patch.dict(os.environ,{},clear=True):
-            self.assertFalse(Settings(_env_file=None).allow_private_http_correspondencia)
+            self.assertFalse(self.Settings(_env_file=None).allow_private_http_correspondencia)
             with self.assertRaises(ValidationError):
-                Settings(_env_file=None,app_env='qa',correspondencia_api_url='http://backend:8000')
+                self.Settings(_env_file=None,app_env='qa',correspondencia_api_url='http://backend:8000')
         values=self.env();values.pop('ALLOW_PRIVATE_HTTP_CORRESPONDENCIA')
         with self.assertRaises(Refusal): validate_env(values)
 
@@ -74,13 +93,13 @@ class QaConnectionTests(unittest.TestCase):
         values=self.env();values['BIOMETRIC_API_URL']='http://backend:8000'
         with self.assertRaises(Refusal): validate_env(values)
         with self.assertRaises(ValidationError):
-            Settings(_env_file=None,app_env='qa',allow_private_http_correspondencia=True,
+            self.Settings(_env_file=None,app_env='qa',allow_private_http_correspondencia=True,
                 correspondencia_api_url='http://backend:8000',biometric_api_url='http://backend:8000')
 
     def test_application_starts_with_internal_qa_url(self):
         child={**os.environ,**self.env(), 'PYTHONPATH':str(ROOT/'backend'),
             'PYTHONDONTWRITEBYTECODE':'1','CORRESPONDENCIA_API_TOKEN':''}
-        code="from app.main import app; from fastapi.testclient import TestClient; c=TestClient(app); assert c.get('/health').status_code==200; assert c.get('/auth/me').status_code==401"
+        code=f"import sys; sys.path.insert(0,{str(self.qa_runtime)!r}); from app.main import app; from fastapi.testclient import TestClient; c=TestClient(app); assert c.get('/health').status_code==200; assert c.get('/auth/me').status_code==401"
         result=subprocess.run([sys.executable,'-c',code],env=child,cwd=ROOT,capture_output=True)
         self.assertEqual(result.returncode,0,'QA application startup failed (output withheld)')
 

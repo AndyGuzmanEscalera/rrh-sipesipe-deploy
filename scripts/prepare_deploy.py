@@ -36,7 +36,7 @@ def apply_deploy_overlays(files):
         return {name:(stage/'backend'/name).read_bytes() for name in files}
 
 
-def prepare(source,expected,validate_only=False):
+def prepare(source,expected,validate_only=False,*,exact_runtime=False):
     source=Path(source).resolve()
     assert source!=ROOT and (ROOT/'.git').exists(), 'Separate deploy checkout required'
     assert git(source,'branch','--show-current').decode().strip()=='develop', 'SOURCE must be develop'
@@ -58,7 +58,8 @@ def prepare(source,expected,validate_only=False):
         assert not re.search(rb'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',data)
         files[name]=data
     assert len(files)>=40 and 'alembic/versions/0001_rrhh_initial_rrhh_owned_tables.py' in files
-    files=apply_deploy_overlays(files)
+    if not exact_runtime:
+        files=apply_deploy_overlays(files)
     if validate_only:
         print('SOURCE clean: '+sha+'; runtime files: '+str(len(files)))
         return
@@ -77,7 +78,7 @@ def prepare(source,expected,validate_only=False):
         target.write_bytes(data)
     manifest=dict(release='qa-'+sha[:12],source_sha=sha,source_branch='develop',
         build_date=datetime.now(timezone.utc).isoformat(),status='prepared',
-        notes='Base runtime from '+SOURCE_REPO+'; explicit deploy QA overlay applied if present; Alembic 0001_rrhh; local validation required; no server deployment.')
+        notes='Base runtime from '+SOURCE_REPO+('; exact committed runtime' if exact_runtime else '; QA overlay applied if present')+'; local validation required; no server deployment.')
     (ROOT/'release.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
     assert git(source,'rev-parse','HEAD').decode().strip()==sha
     assert not git(source,'status','--porcelain').strip()
@@ -89,7 +90,8 @@ if __name__=='__main__':
     parser.add_argument('--source',required=True)
     parser.add_argument('--expected-source-sha',required=True)
     parser.add_argument('--validate-only',action='store_true')
+    parser.add_argument('--exact-runtime',action='store_true',help='Copy committed source without QA overlays')
     args=parser.parse_args()
-    try: prepare(args.source,args.expected_source_sha,args.validate_only)
+    try: prepare(args.source,args.expected_source_sha,args.validate_only,exact_runtime=args.exact_runtime)
     except (AssertionError,OSError,subprocess.CalledProcessError) as exc:
         raise SystemExit('Promotion refused: '+(str(exc) if isinstance(exc,AssertionError) else 'Git/filesystem operation failed'))

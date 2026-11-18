@@ -16,7 +16,7 @@ from urllib.request import urlopen
 ROOT=Path(__file__).resolve().parents[1]
 PROJECT='rrhh-api-deploy'
 MANIFEST_KEYS={'release','source_sha','source_branch','build_date','status','notes'}
-HEAD='0001_rrhh'
+HEAD='0002_biometric_import_batches'
 
 
 class Refusal(RuntimeError): pass
@@ -122,7 +122,8 @@ def preflight(c):
     c.dc('config','--quiet',label='Compose config (requires Compose >=2.30)')
     c.run(['docker','network','inspect','correspondencia-deploy_edge'],label='Existing Correspondencia edge network')
     for name in ['backend/Dockerfile','backend/.dockerignore','backend/requirements.txt','backend/app/main.py',
-        'backend/alembic.ini','backend/alembic/versions/0001_rrhh_initial_rrhh_owned_tables.py']:
+        'backend/alembic.ini','backend/alembic/versions/0001_rrhh_initial_rrhh_owned_tables.py',
+        'backend/alembic/versions/0002_biometric_import_batches.py']:
         path=c.root/name
         require(path.is_file() and not path.is_symlink(),'Missing/linked runtime: '+name)
     clean(c)

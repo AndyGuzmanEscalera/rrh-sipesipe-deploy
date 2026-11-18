@@ -29,6 +29,11 @@ shell que delegan a operations.py, preflight, healthcheck y rollback explícito.
 Se conservan las claves de su manifest: release/source_sha/source_branch/build_date/
 status/notes. El repo SOURCE está identificado en las notas y etiquetas OCI.
 
+## Release de Importación Biométrica
+
+Vea [actualización en servidor, respaldo, rollback y aceptación](docs/DEPLOY_BIOMETRIC_IMPORT.md).
+Esta release usa los archivos exactos de develop mediante --exact-runtime. El acceso HTTP interno sigue reservado a promociones QA con overlay.
+
 ## Promoción en PC
 
 Se aloja el preparador en DEPLOY para conservar intacto el SOURCE aprobado

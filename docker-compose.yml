@@ -55,7 +55,7 @@ services:
     <<: *runtime
     command: [python, -B, -m, app.biometric.worker]
     healthcheck:
-      test: [CMD, python, -B, -c, 'from app.db.session import get_engine; from sqlalchemy import text; c=get_engine().connect(); assert c.execute(text("select version_num from alembic_version")).scalar()=="0001_rrhh"; c.close()']
+      test: [CMD, python, -B, -c, 'from app.db.session import get_engine; from sqlalchemy import text; c=get_engine().connect(); assert c.execute(text("select version_num from alembic_version")).scalar()=="0002_biometric_import_batches"; c.close()']
       interval: 10s
       timeout: 5s
       start_period: 10s

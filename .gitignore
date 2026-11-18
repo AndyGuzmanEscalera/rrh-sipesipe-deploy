@@ -17,3 +17,5 @@ htmlcov/
 *.pem
 .vscode/
 .idea/
+
+/backups/

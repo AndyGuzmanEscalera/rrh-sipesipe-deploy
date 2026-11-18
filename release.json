@@ -1,8 +1,8 @@
 {
-  "release": "qa-f5affb69a177",
-  "source_sha": "f5affb69a1777289ab6f4fd8d27ae259b41895d1",
+  "release": "qa-0636b8520c6c",
+  "source_sha": "0636b8520c6ce6671efb50ac42e4681c581b7ccf",
   "source_branch": "develop",
-  "build_date": "2026-11-16T19:21:14.275978+00:00",
+  "build_date": "2026-11-18T17:48:04.258846-04:00",
   "status": "validated",
-  "notes": "Base runtime from https://github.com/AndyGuzmanEscalera/rrhh-sipe-sipe-api develop. Deploy-only QA overlay patches/qa-correspondencia-http.patch allows opt-in http://backend:8000 only in qa; production HTTPS required. Local isolated startup/DNS/health/delegated auth validated; no server deployment or tunnel changes."
+  "notes": "Exact committed backend runtime. Alembic 0002_biometric_import_batches. Local Compose config, api and worker builds, image OpenAPI, PostgreSQL migration and backup archive validation passed. Production HTTPS; no server deployment."
 }

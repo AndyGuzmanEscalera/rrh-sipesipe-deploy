@@ -1,13 +1,14 @@
 from functools import lru_cache
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
-from pydantic import Field, SecretStr, field_validator, model_validator
+from pydantic import Field, SecretStr, ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
     app_env: str = 'development'
+    allow_private_http_correspondencia: bool = False
     database_url: SecretStr = SecretStr('')
     local_timezone: str = 'America/La_Paz'
     cors_allow_origins: str = ''
@@ -39,7 +40,19 @@ class Settings(BaseSettings):
         if value not in {'lax','strict','none'}: raise ValueError('Invalid cookie SameSite')
         return value
 
-    @field_validator('correspondencia_api_url', 'biometric_api_url')
+    @field_validator('correspondencia_api_url')
+    @classmethod
+    def correspondencia_url(cls,value,info:ValidationInfo):
+        private_http = {
+            'qa': 'http://backend:8000',
+            'development': 'http://host.docker.internal:8000',
+        }
+        if (info.data.get('allow_private_http_correspondencia') is True
+                and value.rstrip('/') == private_http.get(info.data.get('app_env'))):
+            return value.rstrip('/')
+        return cls.https_url(value)
+
+    @field_validator('biometric_api_url')
     @classmethod
     def https_url(cls, value):
         if not value:

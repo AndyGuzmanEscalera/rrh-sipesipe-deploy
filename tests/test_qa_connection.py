@@ -36,6 +36,12 @@ CASES=[
     ('development',True,'http://backend:8000',False),
 ]
 
+RUNTIME_CASES=CASES+[
+    ('development',True,'http://host.docker.internal:8000',True),
+    ('development',True,'http://host.docker.internal:8000/',True),
+    ('development',False,'http://host.docker.internal:8000',False),
+]
+
 
 class QaConnectionTests(unittest.TestCase):
     @classmethod
@@ -73,7 +79,7 @@ class QaConnectionTests(unittest.TestCase):
                     with self.assertRaises(Refusal): validate_env(values)
 
     def test_pydantic_security_matrix(self):
-        for app_env,allow,url,valid in CASES:
+        for app_env,allow,url,valid in RUNTIME_CASES:
             with self.subTest(env=app_env,allow=allow,url=url):
                 values=dict(_env_file=None,app_env=app_env,allow_private_http_correspondencia=allow,
                     correspondencia_api_url=url,biometric_api_url='https://biometric.invalid.test')
@@ -120,6 +126,26 @@ class QaConnectionTests(unittest.TestCase):
             self.assertEqual(values['APP_ENV'],'qa')
             self.assertEqual(values['ALLOW_PRIVATE_HTTP_CORRESPONDENCIA'],'true')
         self.assertEqual(set(config['services']['postgres']['networks']),{'data'})
+
+    def test_local_compose_uses_host_gateway_without_external_network(self):
+        with tempfile.TemporaryDirectory() as directory:
+            env=Path(directory)/'local.env'
+            env.write_bytes((ROOT/'.env.local.example').read_bytes())
+            command=['docker','compose','--env-file',str(env),'-f',str(ROOT/'docker-compose.yml'),
+                     '-f',str(ROOT/'docker-compose.local.yml'),'config','--format','json']
+            result=subprocess.run(command,cwd=ROOT,env={**os.environ,'RUNTIME_ENV_FILE':str(env)},
+                                  capture_output=True)
+        self.assertEqual(result.returncode,0,'Local Compose config failed (output withheld)')
+        config=json.loads(result.stdout)
+        for service in ('api','worker'):
+            self.assertEqual(set(config['services'][service]['networks']),{'edge','data'})
+            hosts=json.dumps(config['services'][service]['extra_hosts'])
+            self.assertIn('host.docker.internal',hosts)
+            self.assertIn('host-gateway',hosts)
+            values=config['services'][service]['environment']
+            self.assertEqual(values['APP_ENV'],'development')
+            self.assertEqual(values['CORRESPONDENCIA_API_URL'],'http://host.docker.internal:8000')
+            self.assertEqual(values['ALLOW_PRIVATE_HTTP_CORRESPONDENCIA'],'true')
 
 
 if __name__=='__main__': unittest.main()

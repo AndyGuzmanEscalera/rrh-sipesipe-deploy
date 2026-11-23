@@ -26,8 +26,12 @@ index f7623fd..b7fcafd 100644
 +    @field_validator('correspondencia_api_url')
 +    @classmethod
 +    def correspondencia_url(cls,value,info:ValidationInfo):
-+        if (info.data.get('app_env')=='qa' and info.data.get('allow_private_http_correspondencia') is True
-+                and value in {'http://backend:8000','http://backend:8000/'}):
++        private_http = {
++            'qa': 'http://backend:8000',
++            'development': 'http://host.docker.internal:8000',
++        }
++        if (info.data.get('allow_private_http_correspondencia') is True
++                and value.rstrip('/') == private_http.get(info.data.get('app_env'))):
 +            return value.rstrip('/')
 +        return cls.https_url(value)
 +

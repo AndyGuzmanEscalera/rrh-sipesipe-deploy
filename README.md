@@ -70,6 +70,33 @@ Gestión8001, Biometric8200; el desarrollo local antiguo también usa8000. Se co
 8300 libre en PC. No se consultó Debian: el preflight debe verificarlo allí antes
 de usarlo. RRHH_API_PORT permite corregir una colisión sin abrir la API en LAN.
 
+## Desarrollo local en Windows
+
+El Compose base permanece orientado a Debian/producción y conserva la red
+externa `correspondencia-deploy_edge`. Para desarrollo local no crear ni conectar
+redes manualmente: el override retira esa red de API/worker y consulta la
+Correspondencia local expuesta por Docker Desktop mediante
+`host.docker.internal:8000`.
+
+```powershell
+Copy-Item .env.local.example .env.local
+docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml up -d
+docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml ps
+curl http://127.0.0.1:8300/health
+```
+
+`.env.local` está ignorado y no contiene secretos reales. Este flujo no usa los
+scripts operativos de Debian ni crea/conecta `correspondencia-deploy_edge`.
+Para Flutter local:
+
+```powershell
+flutter run -d chrome --dart-define=API_BASE_URL=http://127.0.0.1:8300
+```
+
+El HTTP privado de Correspondencia se permite únicamente con
+`APP_ENV=development`, `ALLOW_PRIVATE_HTTP_CORRESPONDENCIA=true` y la URL exacta
+`http://host.docker.internal:8000`; producción sigue exigiendo HTTPS.
+
 ## Operación posterior en Debian
 
 Requiere Python3, Git, Docker Linux y Compose>=2.30 (env_file raw). No ejecutar hasta

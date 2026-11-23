@@ -1,0 +1,10 @@
+# Local-only override. Keep docker-compose.yml production-compatible.
+services:
+  api:
+    networks: !reset [edge, data]
+    extra_hosts:
+      - host.docker.internal:host-gateway
+  worker:
+    networks: !reset [edge, data]
+    extra_hosts:
+      - host.docker.internal:host-gateway

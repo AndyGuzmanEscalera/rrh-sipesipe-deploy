@@ -18,7 +18,7 @@ index f7623fd..b7fcafd 100644
      database_url: SecretStr = SecretStr('')
      local_timezone: str = 'America/La_Paz'
      cors_allow_origins: str = ''
-@@ -39,7 +40,15 @@ class Settings(BaseSettings):
+@@ -39,7 +40,19 @@ class Settings(BaseSettings):
          if value not in {'lax','strict','none'}: raise ValueError('Invalid cookie SameSite')
          return value
  

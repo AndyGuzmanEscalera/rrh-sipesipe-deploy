@@ -1,8 +1,8 @@
 {
-  "release": "qa-c17a6c7680a8",
-  "source_sha": "c17a6c7680a8535b5a731dda52c5b14c119ee5cb",
+  "release": "qa-cb7eecad2cb6",
+  "source_sha": "cb7eecad2cb6ab042b1170201d348fe35b59e3e2",
   "source_branch": "develop",
-  "build_date": "2026-11-23T17:10:13.974514+00:00",
+  "build_date": "2026-11-23T18:07:20.273764+00:00",
   "status": "prepared",
-  "notes": "Exact committed runtime from c17a6c7 including document CI link script; QA correspondencia HTTP overlay retained in config.py; no server deployment."
+  "notes": "Exact committed runtime from cb7eeca: snapshot_id reuse, automatic CI linking in reports, delegated Bearer and temporary report schedule. QA Correspondencia HTTP overlay retained in config.py. Validated locally: compose up, health 200, runtime features and OpenAPI verified; no server deployment."
 }

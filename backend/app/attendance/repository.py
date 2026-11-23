@@ -25,23 +25,31 @@ class AttendanceRepository:
             return None,row
 
     def report_parameters(self, dates):
-        rows = tuple(self.db.scalars(select(Parameters).where(Parameters.valid_from <= dates[-1],
+        rows = tuple(self.db.scalars(select(Parameters).where(
+            Parameters.valid_from <= dates[-1],
             or_(Parameters.valid_to.is_(None), Parameters.valid_to >= dates[0]))))
         result = {}
         for day in dates:
             candidates = [row for row in rows if row.valid_from <= day and (row.valid_to is None or day <= row.valid_to)]
-            if len(candidates) == 1:
-                row = candidates[0]
-                try: result[day] = EvaluationParameters(**{key: getattr(row, key) for key in EvaluationParameters.model_fields}), row.id
-                except ValidationError: pass
+            if len(candidates) != 1:
+                continue
+            row = candidates[0]
+            try:
+                parameters = EvaluationParameters(**{key: getattr(row, key) for key in EvaluationParameters.model_fields})
+            except ValidationError:
+                continue
+            result[day] = parameters, row.id
         return result
 
     def report_coverage(self, employee_id, start, end):
-        devices = set(self.db.scalars(select(EmployeeLink.device_id).where(EmployeeLink.funcionario_id_external == employee_id, EmployeeLink.is_active.is_(True))))
+        devices = set(self.db.scalars(select(EmployeeLink.device_id).where(
+            EmployeeLink.funcionario_id_external == employee_id, EmployeeLink.is_active.is_(True))))
+        if not devices:
+            return devices, {}
         complete = {}
-        if devices:
-            for device, day in self.db.execute(select(Coverage.device_id, Coverage.date).where(Coverage.device_id.in_(devices), Coverage.date.between(start, end), Coverage.status == 'COMPLETE')):
-                complete.setdefault(day, set()).add(device)
+        for device, day in self.db.execute(select(Coverage.device_id, Coverage.date).where(
+                Coverage.device_id.in_(devices), Coverage.date.between(start, end), Coverage.status == 'COMPLETE')):
+            complete.setdefault(day, set()).add(device)
         return devices, complete
 
     def policy(self,contract_id,day):

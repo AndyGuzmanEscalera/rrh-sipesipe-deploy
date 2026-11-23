@@ -1,8 +1,8 @@
 {
-  "release": "qa-0636b8520c6c",
-  "source_sha": "0636b8520c6ce6671efb50ac42e4681c581b7ccf",
+  "release": "qa-c17a6c7680a8",
+  "source_sha": "c17a6c7680a8535b5a731dda52c5b14c119ee5cb",
   "source_branch": "develop",
-  "build_date": "2026-11-18T17:48:04.258846-04:00",
-  "status": "validated",
-  "notes": "Exact committed backend runtime. Alembic 0002_biometric_import_batches. Local Compose config, api and worker builds, image OpenAPI, PostgreSQL migration and backup archive validation passed. Production HTTPS; no server deployment."
+  "build_date": "2026-11-23T17:10:13.974514+00:00",
+  "status": "prepared",
+  "notes": "Exact committed runtime from c17a6c7 including document CI link script; QA correspondencia HTTP overlay retained in config.py; no server deployment."
 }

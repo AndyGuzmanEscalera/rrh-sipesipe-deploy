@@ -1,8 +1,8 @@
 {
-  "release": "qa-cb7eecad2cb6",
-  "source_sha": "cb7eecad2cb6ab042b1170201d348fe35b59e3e2",
+  "release": "qa-19694344616f",
+  "source_sha": "19694344616f5fa027fb2928407ae0349e89a960",
   "source_branch": "develop",
-  "build_date": "2026-11-23T18:07:20.273764+00:00",
-  "status": "prepared",
-  "notes": "Exact committed runtime from cb7eeca: snapshot_id reuse, automatic CI linking in reports, delegated Bearer and temporary report schedule. QA Correspondencia HTTP overlay retained in config.py. Validated locally: compose up, health 200, runtime features and OpenAPI verified; no server deployment."
+  "build_date": "2026-11-24T20:16:08.286750+00:00",
+  "status": "validated",
+  "notes": "Base runtime from https://github.com/AndyGuzmanEscalera/rrhh-sipe-sipe-api; QA overlay applied. Local deployment tests passed (19 OK, 1 POSIX-only skipped) and Docker Compose config validated with synthetic credentials; no server deployment."
 }

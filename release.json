@@ -1,8 +1,8 @@
 {
-  "release": "qa-19694344616f",
-  "source_sha": "19694344616f5fa027fb2928407ae0349e89a960",
+  "release": "qa-deda42f6f11e",
+  "source_sha": "deda42f6f11e5ea7b353929f33b7518e50fa024a",
   "source_branch": "develop",
-  "build_date": "2026-11-24T20:16:08.286750+00:00",
+  "build_date": "2026-11-24T20:31:32.584469+00:00",
   "status": "validated",
   "notes": "Base runtime from https://github.com/AndyGuzmanEscalera/rrhh-sipe-sipe-api; QA overlay applied. Local deployment tests passed (19 OK, 1 POSIX-only skipped) and Docker Compose config validated with synthetic credentials; no server deployment."
 }

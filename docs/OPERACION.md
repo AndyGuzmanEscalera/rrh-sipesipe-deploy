@@ -149,3 +149,7 @@ anterior antes de habilitar uno nuevo: el lock solo coordina la misma DB RRHH.
 Biometric API sigue leyendo histórico físico antes de filtrar/paginar; reportes
 persistidos no dependen de ese servicio, pero sí del maestro para auth/cabecera.
 Verificar puerto8300 real en Debian y túnel existente antes de tocar configuración.
+
+## Validación release qa-64865f07f36d
+
+Runtime preparado desde backend develop 64865f07f36d5ce108355b7560d9deb1e437127e; overlay QA preservado y aplicado. Validado en PC con Python 3.12.10: python -m unittest discover -s tests -q (20 pruebas OK, 1 omitida por plataforma). docker compose --env-file <archivo temporal> -f docker-compose.yml config --quiet pasó usando valores sintéticos, incluida POSTGRES_PASSWORD; el archivo temporal se eliminó. No se desplegó en Debian.

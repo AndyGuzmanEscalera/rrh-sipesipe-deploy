@@ -1,8 +1,8 @@
 {
-  "release": "qa-64865f07f36d",
-  "source_sha": "64865f07f36d5ce108355b7560d9deb1e437127e",
+  "release": "qa-ff7a47586459",
+  "source_sha": "ff7a47586459d37c60cb03310b83c1d202642cef",
   "source_branch": "develop",
-  "build_date": "2026-11-24T17:01:40.928481-04:00",
+  "build_date": "2026-11-24T18:11:34.221541-04:00",
   "status": "validated",
-  "notes": "Base runtime from develop 64865f07f36d5ce108355b7560d9deb1e437127e; QA overlay applied; Python 3.12.10 deployment tests: 20 passed, 1 skipped; Docker Compose config validated with synthetic credentials; no server deployment."
+  "notes": "Runtime from backend develop ff7a47586459d37c60cb03310b83c1d202642cef; QA overlay applied; Python 3.12.10 deployment tests: 20 passed, 1 skipped; Docker Compose config validated with synthetic variables including POSTGRES_PASSWORD; backend focused tests: 51 passed; Flutter analyze clean, 102 tests passed, web release build succeeded; no Debian deployment."
 }
